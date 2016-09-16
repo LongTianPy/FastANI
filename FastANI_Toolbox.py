@@ -72,7 +72,7 @@ def split_query_seq(query_seq, frag_size=1020):
     return fragments
 
 
-def concate_reference_files(reference_folder,workdir):
+def concate_reference_files(reference_folder,work_dir):
     """
     Write reference files into one
     :param reference_folder:
