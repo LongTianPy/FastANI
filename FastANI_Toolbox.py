@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # !/usr/bin/python
 
 # IMPORT
@@ -98,6 +96,7 @@ def concate_reference_files(reference_folder):
         concat_ref_file.write(seq + "\n")
     concat_ref_file.close()
     mapping = [[i, ref_prefix] for i in reference_files]
+    print mapping
     return mapping
 
 
