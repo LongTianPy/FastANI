@@ -127,13 +127,17 @@ def single_blast_run(each_mapping):
     (query_filepath,ref_prefix) = each_mapping
     prefix_query = "".join(query_filepath.split("/")[-1].split(".")[:-1])
     handler_NewGenome = open(query_filepath,"r")
+    print "Reading {0} genome".format(prefix_query)
     records_NewGenome = list(SeqIO.parse(handler_NewGenome,"fasta"))
     handler_NewGenome.close()
     concatenated_seq_NewGenome = ""
+    print "Concatenating {0} sequences".format(prefix_query)
     for record in records_NewGenome:
         concatenated_seq_NewGenome = concatenated_seq_NewGenome + str(record.seq).replace("N","")
+    print "Cutting {0} genome into consecutive 1020 bp fragments".format(prefix_query)
     fragments_NewGenome = split_query_seq(query_seq=concatenated_seq_NewGenome,frag_size=1020)
     handler_fragments_NewGenome = open((prefix_query + "_query.fna"), "w")
+    print "Writing {0} fragments into a new FASTA file".format(prefix_query)
     for i in range(len(fragments_NewGenome)):
         handler_fragments_NewGenome.write(">fragment_{0}\n".format(i))
         handler_fragments_NewGenome.write(fragments_NewGenome[i]+"\n")
@@ -144,9 +148,12 @@ def single_blast_run(each_mapping):
         .format(prefix_query, prefix_query + "_query.fna", "ref_genome_blastdb")
     os.system(blastall_cmd)
     FilePath_blast_tab = prefix_query + "_result.tab"
+    print "Parsing blast result of {0}".format(prefix_query)
     ANI_table = blast_tab(FilePath_blast_tab, ref_prefix).ANI_table
+    print "Retrieving the best match of {0}".format(prefix_query)
     best_match, best_ANI = parse_blast_tab_get_best(ANI_table=ANI_table,prefix_query=prefix_query)
     ANI_table.columns = [prefix_query]
+    print "Writing best match result of {0}".format(prefix_query)
     with open("best_match.tab","a") as best_table:
         best_table.write("{0}\t{1}\t{2}\n".format(prefix_query, best_match, best_ANI))
     ANI_table.to_csv("{0}_ANI.csv".format(prefix_query))
@@ -173,6 +180,7 @@ def FastANI(argv=None):
     ref_prefix = mapping[0][1]
     df = pd.DataFrame(index=ref_prefix)
     pairwise_ANI_files = [file for file in listdir("./") if file.endswith(".csv")]
+    print "Concatenating pairwise ANI result"
     for file in pairwise_ANI_files:
         each_df = pd.DataFrame.from_csv(file, header=0, index_col=0)
         colname = each_df.columns[0]
