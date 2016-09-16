@@ -106,7 +106,7 @@ def makeblastdb(work_dir):
     os.system(cmd)
 
 
-def parse_blast_tab_get_best(ANI_table):
+def parse_blast_tab_get_best(ANI_table,prefix_query):
     top_hit = ANI_table.index[0]
     if top_hit != prefix_query:
         best_match = top_hit
@@ -145,7 +145,7 @@ def single_blast_run(each_mapping):
     os.system(blastall_cmd)
     FilePath_blast_tab = prefix_query + "_result.tab"
     ANI_table = blast_tab(FilePath_blast_tab, ref_prefix).ANI_table
-    best_match, best_ANI = parse_blast_tab_get_best(ANI_table=ANI_table)
+    best_match, best_ANI = parse_blast_tab_get_best(ANI_table=ANI_table,prefix_query=prefix_query)
     ANI_table.columns = [prefix_query]
     with open("best_match.tab","a") as best_table:
         best_table.write("{0}\t{1}\t{2}\n".format(prefix_query, best_match, best_ANI))
