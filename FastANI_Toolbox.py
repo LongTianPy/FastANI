@@ -142,6 +142,7 @@ def single_blast_run(each_mapping):
         handler_fragments_NewGenome.write(">fragment_{0}\n".format(i))
         handler_fragments_NewGenome.write(fragments_NewGenome[i]+"\n")
     handler_fragments_NewGenome.close()
+    print "Blasting {0} against the database".format(prefix_query)
     blastall_cmd = "blastall -p blastn -o {0}_result.tab -i {1} -d {2} " \
                    "-X 150 -q -1 -F F -e 1e-15 " \
                    "-b 1 -v 1 -m 8 -a 4" \
