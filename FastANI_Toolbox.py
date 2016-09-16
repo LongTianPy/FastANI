@@ -100,9 +100,9 @@ def concate_reference_files(reference_folder,work_dir):
     return mapping
 
 
-def makeblastdb(workdir):
-    cmd = "makeblastdb -dbtype nucl -in concat_ref.fasta -title ref_genome " \
-          "-out {0}ref_genome_blastdb".format(join(workdir,""))
+def makeblastdb(work_dir):
+    cmd = "makeblastdb -dbtype nucl -in {0}concat_ref.fasta -title ref_genome " \
+          "-out {0}ref_genome_blastdb".format(join(work_dir,""))
     os.system(cmd)
 
 
