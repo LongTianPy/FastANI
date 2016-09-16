@@ -19,7 +19,11 @@ class blast_tab(object):
         self.ref_prefix = ref_prefix
         if os.path.isfile(self.filepath):
             self.parse()
-    def parse(self, filepath = self.filepath, ref_prefix=self.prefix):
+    def parse(self, filepath = None, ref_prefix= None):
+        if filepath is None:
+            filepath = self.filepath
+        if ref_prefix is None:
+            ref_prefix = self.ref_prefix
         ref_dict = {}
         for i in ref_prefix:
             ref_dict[i] = [] # Store identity and alignment length
