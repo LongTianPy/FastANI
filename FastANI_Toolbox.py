@@ -35,6 +35,8 @@ class blast_tab(object):
             align_pct = float(int(align))/1020
             if identity >= 0.3 and align_pct >= 0.7:
                 ref_dict[ref_id].append(identity)
+            else:
+                continue
         ANI_dict = {}
         for each_ref in ref_prefix:
             ANI_dict[each_ref] = np.mean(ref_dict[each_ref],dtype=np.float64)
