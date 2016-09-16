@@ -81,7 +81,7 @@ def concate_reference_files(reference_folder,work_dir):
     reference = []
     append_reference = reference.append
     reference_files = [join(reference_folder,file) for file in listdir(reference_folder) if isfile(join(reference_folder, file))]
-    concat_ref_file = open(join(workdir,'concat_ref.fasta'), 'w')
+    concat_ref_file = open(join(work_dir,'concat_ref.fasta'), 'w')
     for file in reference_files:
         ref_prefix = "".join(file.split("/")[-1].split(".")[:-1])
         append_reference(ref_prefix)
