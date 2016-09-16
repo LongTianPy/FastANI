@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import multiprocessing as mp
 import argparse
+import sys
 
 # OBJECT
 class blast_tab(object):
