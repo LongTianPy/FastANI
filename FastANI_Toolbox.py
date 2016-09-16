@@ -160,6 +160,7 @@ def FastANI(argv=None):
     work_dir = args.work_dir
     if isdir(work_dir):
         os.system("rm -rf {0}".format(work_dir))
+        os.mkdir(work_dir)
     else:
         os.mkdir(work_dir)
     os.chdir(work_dir)
