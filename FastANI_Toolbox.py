@@ -95,14 +95,14 @@ def concate_reference_files(reference_folder):
             seq = seq + seq_modified
         concat_ref_file.write(seq + "\n")
     concat_ref_file.close()
-    mapping = [[i, ref_prefix] for i in reference_files]
+    mapping = [[i, reference] for i in reference_files]
     print mapping
     return mapping
 
 
 def makeblastdb():
     cmd = "makeblastdb -dbtype nucl -in concat_ref.fasta -title ref_genome " \
-          "-out {0}/ref_genome_blastdb"
+          "-out ref_genome_blastdb"
     os.system(cmd)
 
 
@@ -158,6 +158,10 @@ def FastANI(argv=None):
     args = get_parsed_args()
     reference_folder = args.reference_folder
     work_dir = args.work_dir
+    if isdir(work_dir):
+        os.system("rm -rf {0}".format(work_dir))
+    else:
+        os.mkdir(work_dir)
     os.chdir(work_dir)
     # Prepare blast db
     mapping = concate_reference_files(reference_folder=reference_folder)
