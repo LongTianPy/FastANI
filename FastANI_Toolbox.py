@@ -72,7 +72,7 @@ def split_query_seq(query_seq, frag_size=1020):
     return fragments
 
 
-def concate_reference_files(reference_folder):
+def concate_reference_files(reference_folder,workdir):
     """
     Write reference files into one
     :param reference_folder:
@@ -81,7 +81,7 @@ def concate_reference_files(reference_folder):
     reference = []
     append_reference = reference.append
     reference_files = [join(reference_folder,file) for file in listdir(reference_folder) if isfile(join(reference_folder, file))]
-    concat_ref_file = open('concat_ref.fasta', 'w')
+    concat_ref_file = open(join(workdir,'concat_ref.fasta'), 'w')
     for file in reference_files:
         ref_prefix = "".join(file.split("/")[-1].split(".")[:-1])
         append_reference(ref_prefix)
@@ -100,9 +100,9 @@ def concate_reference_files(reference_folder):
     return mapping
 
 
-def makeblastdb():
+def makeblastdb(workdir):
     cmd = "makeblastdb -dbtype nucl -in concat_ref.fasta -title ref_genome " \
-          "-out ref_genome_blastdb"
+          "-out {0}ref_genome_blastdb".format(join(workdir,""))
     os.system(cmd)
 
 
@@ -163,10 +163,10 @@ def FastANI(argv=None):
         os.mkdir(work_dir)
     else:
         os.mkdir(work_dir)
-    os.chdir(work_dir)
     # Prepare blast db
-    mapping = concate_reference_files(reference_folder=reference_folder)
-    makeblastdb()
+    mapping = concate_reference_files(reference_folder=reference_folder, work_dir=work_dir)
+    makeblastdb(work_dir=work_dir)
+    os.chdir(work_dir)
     # Multi-processing
     pool = mp.Pool(processes=4)
     pool.map(single_blast_run, mapping)
