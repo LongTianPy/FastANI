@@ -23,23 +23,35 @@ class blast_tab(object):
             filepath = self.filepath
         if ref_prefix is None:
             ref_prefix = self.ref_prefix
+        frag_dict = {}
         ref_dict = {}
         for i in ref_prefix:
-            ref_dict[i] = [] # Store identity and alignment length
+            ref_dict[i] = {} # Store identity and alignment length
         f = open(filepath,"r")
         lines = [i.split("\t") for i in f.readlines()]
         f.close()
         for line in lines:
-            (frag_id, ref_id, identity, align) = line[:4]
+            best_hit = True
+            (frag_id, ref_id, identity, align, mismatchCount, gapOpenCount, queryStart,
+             queryEnd, subjectStart, subjectEnd, evalue, bitScore) = line
             identity = float(identity)/100
             align_pct = float(int(align))/1020
+
             if identity >= 0.3 and align_pct >= 0.7:
-                ref_dict[ref_id].append(identity)
+                if frag_id in ref_dict[ref_id]:
+                    if float(bitScore) < float(ref_dict[ref_id][frag_id][-1]):
+                        best_hit = False
+                    if best_hit:
+                        ref_dict[ref_id][frag_id] = [identity,bitScore]
             else:
                 continue
+
+
         ANI_dict = {}
         for each_ref in ref_prefix:
-            ANI_dict[each_ref] = np.mean(ref_dict[each_ref],dtype=np.float64)
+            fragments = ref_dict[each_ref].keys()
+            identities = [ref_dict[fragment][0] for fragment in fragments]
+            ANI_dict[each_ref] = np.mean(identities,dtype=np.float64)
         df = pd.DataFrame.from_dict(ANI_dict,orient='index')
         df.columns = ['ANI']
         new_df = df.sort_index(by=['ANI'],ascending=False)
