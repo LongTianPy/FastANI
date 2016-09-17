@@ -30,17 +30,17 @@ class blast_tab(object):
         f = open(filepath,"r")
         lines = [i.strip().split("\t") for i in f.readlines()]
         f.close()
-for line in lines:
-    best_hit = True
-    (frag_id, ref_id, identity, align, mismatchCount, gapOpenCount, queryStart, queryEnd, subjectStart, subjectEnd, evalue, bitScore) = line
-    identity = float(identity)/100
-    align_pct = float(int(align))/1020
-    if identity >= 0.3 and align_pct >= 0.7:
-        if frag_id in ref_dict[ref_id]:
-            if float(bitScore) < float(ref_dict[ref_id][frag_id][-1]):
-                best_hit = False
-        if best_hit:
-            ref_dict[ref_id][frag_id] = [identity,bitScore]
+        for line in lines:
+            best_hit = True
+            (frag_id, ref_id, identity, align, mismatchCount, gapOpenCount, queryStart, queryEnd, subjectStart, subjectEnd, evalue, bitScore) = line
+            identity = float(identity)/100
+            align_pct = float(int(align))/1020
+            if identity >= 0.3 and align_pct >= 0.7:
+                if frag_id in ref_dict[ref_id]:
+                    if float(bitScore) < float(ref_dict[ref_id][frag_id][-1]):
+                        best_hit = False
+                if best_hit:
+                    ref_dict[ref_id][frag_id] = [identity,bitScore]
 
         ANI_dict = {}
         for each_ref in ref_prefix:
