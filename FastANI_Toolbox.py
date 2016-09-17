@@ -40,9 +40,9 @@ class blast_tab(object):
                     if float(bitScore) < float(ref_dict[ref_id][frag_id][-1]):
                         continue
                     else:
-                        ref_dict[ref_dict][frag_id] = [identity,bitScore]
+                        ref_dict[ref_id][frag_id] = [identity,bitScore]
                 else:
-                    ref_dict[ref_dict][frag_id] = [identity, bitScore]
+                    ref_dict[ref_id][frag_id] = [identity, bitScore]
 
 
         ANI_dict = {}
