@@ -36,14 +36,10 @@ class blast_tab(object):
             identity = float(identity)/100
             align_pct = float(int(align))/1020
             if identity >= 0.3 and align_pct >= 0.7:
-                if frag_id in ref_dict[ref_id]:
-                    if float(bitScore) < float(ref_dict[ref_id][frag_id][-1]):
-                        continue
-                    else:
-                        ref_dict[ref_id][frag_id] = [identity,bitScore]
-                else:
+                if frag_id not in ref_dict[ref_id]:
                     ref_dict[ref_id][frag_id] = [identity, bitScore]
-
+                else:
+                    continue
 
         ANI_dict = {}
         for each_ref in ref_prefix:
