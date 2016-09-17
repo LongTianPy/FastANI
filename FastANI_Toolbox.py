@@ -28,24 +28,19 @@ class blast_tab(object):
         for i in ref_prefix:
             ref_dict[i] = {} # Store identity and alignment length
         f = open(filepath,"r")
-        lines = [i.split("\t") for i in f.readlines()]
+        lines = [i.strip().split("\t") for i in f.readlines()]
         f.close()
-        for line in lines:
-            best_hit = True
-            (frag_id, ref_id, identity, align, mismatchCount, gapOpenCount, queryStart,
-             queryEnd, subjectStart, subjectEnd, evalue, bitScore) = line
-            identity = float(identity)/100
-            align_pct = float(int(align))/1020
-
-            if identity >= 0.3 and align_pct >= 0.7:
-                if frag_id in ref_dict[ref_id]:
-                    if float(bitScore) < float(ref_dict[ref_id][frag_id][-1]):
-                        best_hit = False
-                    if best_hit:
-                        ref_dict[ref_id][frag_id] = [identity,bitScore]
-            else:
-                continue
-
+for line in lines:
+    best_hit = True
+    (frag_id, ref_id, identity, align, mismatchCount, gapOpenCount, queryStart, queryEnd, subjectStart, subjectEnd, evalue, bitScore) = line
+    identity = float(identity)/100
+    align_pct = float(int(align))/1020
+    if identity >= 0.3 and align_pct >= 0.7:
+        if frag_id in ref_dict[ref_id]:
+            if float(bitScore) < float(ref_dict[ref_id][frag_id][-1]):
+                best_hit = False
+        if best_hit:
+            ref_dict[ref_id][frag_id] = [identity,bitScore]
 
         ANI_dict = {}
         for each_ref in ref_prefix:
@@ -159,7 +154,7 @@ def single_blast_run(each_mapping):
     print "Blasting {0} against the database".format(prefix_query)
     blastall_cmd = "blastall -p blastn -o {0}_result.tab -i {1} -d {2} " \
                    "-X 150 -q -1 -F F -e 1e-15 " \
-                   "-b 1 -v 1 -m 8 -a 4" \
+                   "-m 8 -a 4" \
         .format(prefix_query, prefix_query + "_query.fna", "ref_genome_blastdb")
     os.system(blastall_cmd)
     FilePath_blast_tab = prefix_query + "_result.tab"
