@@ -36,18 +36,24 @@ class blast_tab(object):
             align_pct = float(int(align))/1020
             if identity >= 0.3 and align_pct >= 0.7:
                 if frag_id not in ref_dict[ref_id]:
-                    ref_dict[ref_id][frag_id] = identity
+                    ref_dict[ref_id][frag_id] = [identity, int(align)]
                 else:
                     continue
         ANI_dict = {}
+        align_dict = {}
         for each_ref in ref_prefix:
             fragments = ref_dict[each_ref].keys()
-            identities = [ref_dict[each_ref][fragment] for fragment in fragments]
+            identities = [ref_dict[each_ref][fragment][0] for fragment in fragments]
+            align_pcts = [ref_dict[each_ref][fragment][1] for fragment in fragments]
+            Align_dict[each_ref] = sum(align_pcts)
             ANI_dict[each_ref] = np.mean(identities,dtype=np.float64)
-        df = pd.DataFrame.from_dict(ANI_dict,orient='index')
-        df.columns = ['ANI']
-        new_df = df.sort_index(by=['ANI'],ascending=False)
-        self.ANI_table = new_df
+        df_ANI = pd.DataFrame.from_dict(ANI_dict,orient='index')
+        df_align = pd.DataFrame.from_dict(align_dict,orient='index')
+        df_align.columns = ['cov']
+        df_ANI.columns = ['ANI']
+
+        self.ANI_table = df_ANI
+        self.cov_table = df_align
 
 
 # FUNCTION
@@ -69,13 +75,14 @@ def split_query_seq(query_seq, frag_size=1020):
     total_size = len(query_seq)
     fragments = []
     append_fragments = fragments.append
+    fragments_count = 0
     for i in range(0, total_size, frag_size):
+        fragments_count += 1
         append_fragments(query_seq[i:i + frag_size])
     if len(fragments[-1]) != frag_size:
+        fragments_count -= 1
         fragments = fragments[:-1]
-    else:
-        fragments = fragments
-    return fragments
+    return fragments, fragments_count
 
 
 def concate_reference_files(reference_folder,work_dir):
@@ -112,14 +119,12 @@ def makeblastdb(work_dir):
     os.system(cmd)
 
 
+
 def parse_blast_tab_get_best(ANI_table,prefix_query):
-    top_hit = ANI_table.index[0]
-    if top_hit != prefix_query:
-        best_match = top_hit
-        best_ANI = ANI_table.loc[best_match,'ANI']
-    else:
-        best_match = ANI_table.index[1]
-        best_ANI = ANI_table.loc[best_match,'ANI']
+    sorted_ANI_table = ANI_table.sort_index(by=['ANI'], ascending=False)
+    top_hit = sorted_ANI_table.index[0]
+    best_match = sorted_ANI_table.index[1]
+    best_ANI = sorted_ANI_table.loc[best_match,'ANI']
     best_ANI = "{0:.5f}%".format(best_ANI*100)
     return best_match, best_ANI
 
@@ -141,7 +146,10 @@ def single_blast_run(each_mapping):
     for record in records_NewGenome:
         concatenated_seq_NewGenome = concatenated_seq_NewGenome + str(record.seq).replace("N","")
     print "Cutting {0} genome into consecutive 1020 bp fragments".format(prefix_query)
-    fragments_NewGenome = split_query_seq(query_seq=concatenated_seq_NewGenome,frag_size=1020)
+    fragments_NewGenome, num_fragments = split_query_seq(query_seq=concatenated_seq_NewGenome,frag_size=1020)
+    num_fragments_recorder = open("num_fragments.tab", "a")
+    num_fragments_recorder.write("{0}\t{1}\n".format(prefix_query,num_fragments))
+    num_fragments_recorder.close()
     handler_fragments_NewGenome = open((prefix_query + "_query.fna"), "w")
     print "Writing {0} fragments into a new FASTA file".format(prefix_query)
     for i in range(len(fragments_NewGenome)):
@@ -156,14 +164,18 @@ def single_blast_run(each_mapping):
     os.system(blastall_cmd)
     FilePath_blast_tab = prefix_query + "_result.tab"
     print "Parsing blast result of {0}".format(prefix_query)
-    ANI_table = blast_tab(FilePath_blast_tab, ref_prefix).ANI_table
+    blast_out_obj = blast_tab(FilePath_blast_tab, ref_prefix)
+    ANI_table = blast_out_obj.ANI_table
+    cov_table = blast_out_obj.cov_table
     print "Retrieving the best match of {0}".format(prefix_query)
     best_match, best_ANI = parse_blast_tab_get_best(ANI_table=ANI_table,prefix_query=prefix_query)
     ANI_table.columns = [prefix_query]
+    cov_table.columns = [prefix_query]
     print "Writing best match result of {0}".format(prefix_query)
     with open("best_match.tab","a") as best_table:
         best_table.write("{0}\t{1}\t{2}\n".format(prefix_query, best_match, best_ANI))
     ANI_table.to_csv("{0}_ANI.csv".format(prefix_query))
+    cov_table.to_csv("{0}_cov.csv".format(prefix_query))
 
 
 def FastANI(argv=None):
@@ -185,14 +197,23 @@ def FastANI(argv=None):
     pool = mp.Pool(processes=4)
     pool.map(single_blast_run, mapping)
     ref_prefix = mapping[0][1]
-    df = pd.DataFrame(index=ref_prefix)
-    pairwise_ANI_files = [file for file in listdir("./") if file.endswith(".csv")]
+    df_ANI = pd.DataFrame(index=ref_prefix)
+    pairwise_ANI_files = [file for file in listdir("./") if file.endswith("_ANI.csv")]
     print "Concatenating pairwise ANI result"
     for file in pairwise_ANI_files:
         each_df = pd.DataFrame.from_csv(file, header=0, index_col=0)
         colname = each_df.columns[0]
-        df[colname] = each_df
-    df.to_csv("pairwise_ANI.csv")
+        df_ANI[colname] = each_df
+    df_ANI.to_csv("pairwise_ANI.csv")
+    print "Concatenating coverage result"
+    cov_files = [file for file in listdir("./") if file.endswith("_cov.csv")]
+    df_cov = pd.DataFrame(index=ref_prefix)
+    for file in cov_files:
+        each_df = pd.DataFrame.from_csv(file,header=0, index_col=0)
+        colname = each_df.columns[0]
+        df_cov[colname] = each_df
+    df_cov.to_csv("total_coverage.csv")
+
 
 if __name__ == "__main__":
     FastANI()
