@@ -45,7 +45,7 @@ class blast_tab(object):
             fragments = ref_dict[each_ref].keys()
             identities = [ref_dict[each_ref][fragment][0] for fragment in fragments]
             align_pcts = [ref_dict[each_ref][fragment][1] for fragment in fragments]
-            Align_dict[each_ref] = sum(align_pcts)
+            align_dict[each_ref] = sum(align_pcts)
             ANI_dict[each_ref] = np.mean(identities,dtype=np.float64)
         df_ANI = pd.DataFrame.from_dict(ANI_dict,orient='index')
         df_align = pd.DataFrame.from_dict(align_dict,orient='index')
@@ -159,7 +159,7 @@ def single_blast_run(each_mapping):
     print "Blasting {0} against the database".format(prefix_query)
     blastall_cmd = "blastall -p blastn -o {0}_result.tab -i {1} -d {2} " \
                    "-X 150 -q -1 -F F -e 1e-15 " \
-                   "-m 8 -a 4" \
+                   "-m 8 -a 8" \
         .format(prefix_query, prefix_query + "_query.fna", "ref_genome_blastdb")
     os.system(blastall_cmd)
     FilePath_blast_tab = prefix_query + "_result.tab"
