@@ -23,7 +23,6 @@ class blast_tab(object):
             filepath = self.filepath
         if ref_prefix is None:
             ref_prefix = self.ref_prefix
-        frag_dict = {}
         ref_dict = {}
         for i in ref_prefix:
             ref_dict[i] = {} # Store identity and alignment length
@@ -37,14 +36,13 @@ class blast_tab(object):
             align_pct = float(int(align))/1020
             if identity >= 0.3 and align_pct >= 0.7:
                 if frag_id not in ref_dict[ref_id]:
-                    ref_dict[ref_id][frag_id] = [identity, bitScore]
+                    ref_dict[ref_id][frag_id] = identity
                 else:
                     continue
-
         ANI_dict = {}
         for each_ref in ref_prefix:
             fragments = ref_dict[each_ref].keys()
-            identities = [ref_dict[fragment][0] for fragment in fragments]
+            identities = [ref_dict[each_ref][fragment] for fragment in fragments]
             ANI_dict[each_ref] = np.mean(identities,dtype=np.float64)
         df = pd.DataFrame.from_dict(ANI_dict,orient='index')
         df.columns = ['ANI']
