@@ -10,6 +10,7 @@ import numpy as np
 import multiprocessing as mp
 import argparse
 import sys
+from datetime import datetime
 
 # OBJECT
 class blast_tab(object):
@@ -180,6 +181,7 @@ def single_blast_run(each_mapping):
 
 
 def FastANI(argv=None):
+    print datetime.now()
     if argv is None:
         argv = sys.argv
     args = get_parsed_args()
@@ -226,6 +228,7 @@ def FastANI(argv=None):
         for row in ref_prefix:
             calibrated_ANI.loc[row, each_col] = df_ANI.loc[row, each_col] * df_cov.loc[row, each_col]
     calibrated_ANI.to_csv("calibrated_ANI.csv")
+    print datetime.now()
 
 
 if __name__ == "__main__":
