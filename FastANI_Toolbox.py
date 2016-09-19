@@ -213,7 +213,7 @@ def FastANI(argv=None):
     num_fragments_recorder.close()
     for each_line in lines:
         num_fragments[each_line[0]] = float(each_line[1])
-    cov_files = [file for file in listdir("./") if file.endswith("_cov.csv")]
+    cov_files = [file for file in listdir("./") if file.endswith("_aligned.csv")]
     df_cov = pd.DataFrame(index=ref_prefix)
     for file in cov_files:
         each_df = pd.DataFrame.from_csv(file,header=0, index_col=0)
