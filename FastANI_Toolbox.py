@@ -223,7 +223,8 @@ def FastANI(argv=None):
     df_cov.to_csv("total_aligned.csv")
     calibrated_ANI = pd.DataFrame(index=ref_prefix)
     for each_col in ref_prefix:
-        calibrated_ANI[each_col] = df_ANI[each_col] * pct_fragments[each_col]
+        for row in ref_prefix:
+            calibrated_ANI.loc[row, each_col] = df_ANI.loc[row, each_col] * df[row, each_col]
     calibrated_ANI.to_csv("calibrated_ANI.csv")
 
 
