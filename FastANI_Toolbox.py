@@ -224,7 +224,7 @@ def FastANI(argv=None):
     calibrated_ANI = pd.DataFrame(index=ref_prefix)
     for each_col in ref_prefix:
         for row in ref_prefix:
-            calibrated_ANI.loc[row, each_col] = df_ANI.loc[row, each_col] * df_cov[row, each_col]
+            calibrated_ANI.loc[row, each_col] = df_ANI.loc[row, each_col] * df_cov.loc[row, each_col]
     calibrated_ANI.to_csv("calibrated_ANI.csv")
 
 
