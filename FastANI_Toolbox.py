@@ -207,12 +207,12 @@ def FastANI(argv=None):
         df_ANI[colname] = each_df
     df_ANI.to_csv("pairwise_ANI.csv")
     print "Concatenating coverage result"
-    pct_fragments = {}
+    num_fragments = {}
     num_fragments_recorder = open("num_fragments.tab","r")
     lines = [i.strip().split("\t") for i in num_fragments_recorder.readlines()]
     num_fragments_recorder.close()
     for each_line in lines:
-        pct_fragments[each_line[0]] = float(each_line[1])
+        num_fragments[each_line[0]] = float(each_line[1])
     cov_files = [file for file in listdir("./") if file.endswith("_cov.csv")]
     df_cov = pd.DataFrame(index=ref_prefix)
     for file in cov_files:
@@ -224,7 +224,7 @@ def FastANI(argv=None):
     calibrated_ANI = pd.DataFrame(index=ref_prefix)
     for each_col in ref_prefix:
         for row in ref_prefix:
-            calibrated_ANI.loc[row, each_col] = df_ANI.loc[row, each_col] * df[row, each_col]
+            calibrated_ANI.loc[row, each_col] = df_ANI.loc[row, each_col] * df_cov[row, each_col]
     calibrated_ANI.to_csv("calibrated_ANI.csv")
 
 
