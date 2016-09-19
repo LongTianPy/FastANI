@@ -33,10 +33,11 @@ class blast_tab(object):
             best_hit = True
             (frag_id, ref_id, identity, align, mismatchCount, gapOpenCount, queryStart, queryEnd, subjectStart, subjectEnd, evalue, bitScore) = line
             identity = float(identity)/100
-            align_pct = float(int(align))/1020
+            align = int(align) - int(gapOpenCount)
+            align_pct = float(align)/1020
             if identity >= 0.3 and align_pct >= 0.7:
                 if frag_id not in ref_dict[ref_id]:
-                    ref_dict[ref_id][frag_id] = [identity, int(align)]
+                    ref_dict[ref_id][frag_id] = [identity, align]
                 else:
                     continue
         ANI_dict = {}
@@ -45,11 +46,11 @@ class blast_tab(object):
             fragments = ref_dict[each_ref].keys()
             identities = [ref_dict[each_ref][fragment][0] for fragment in fragments]
             align_pcts = [ref_dict[each_ref][fragment][1] for fragment in fragments]
-            align_dict[each_ref] = sum(align_pcts)
+            align_dict[each_ref] = len(align_pcts)
             ANI_dict[each_ref] = np.mean(identities,dtype=np.float64)
         df_ANI = pd.DataFrame.from_dict(ANI_dict,orient='index')
         df_align = pd.DataFrame.from_dict(align_dict,orient='index')
-        df_align.columns = ['cov']
+        df_align.columns = ['ALIGNED']
         df_ANI.columns = ['ANI']
 
         self.ANI_table = df_ANI
@@ -175,7 +176,7 @@ def single_blast_run(each_mapping):
     with open("best_match.tab","a") as best_table:
         best_table.write("{0}\t{1}\t{2}\n".format(prefix_query, best_match, best_ANI))
     ANI_table.to_csv("{0}_ANI.csv".format(prefix_query))
-    cov_table.to_csv("{0}_cov.csv".format(prefix_query))
+    cov_table.to_csv("{0}_aligned.csv".format(prefix_query))
 
 
 def FastANI(argv=None):
@@ -206,13 +207,25 @@ def FastANI(argv=None):
         df_ANI[colname] = each_df
     df_ANI.to_csv("pairwise_ANI.csv")
     print "Concatenating coverage result"
+    num_fragments = {}
+    num_fragments_recorder = open("num_fragments.tab","r")
+    lines = [i.strip().split("\t") for i in f.readlines()]
+    num_fragments_recorder.close()
+    for each_line in lines:
+        num_fragments[each_line[0]] = float(each_line[1])
     cov_files = [file for file in listdir("./") if file.endswith("_cov.csv")]
     df_cov = pd.DataFrame(index=ref_prefix)
     for file in cov_files:
         each_df = pd.DataFrame.from_csv(file,header=0, index_col=0)
         colname = each_df.columns[0]
         df_cov[colname] = each_df
-    df_cov.to_csv("total_coverage.csv")
+        df_cov[colname] = df_cov[colname]/num_fragments[colname]
+    df_cov.to_csv("total_aligned.csv")
+    calibrated_ANI = pd.DataFrame()
+    for x in ref_prefix:
+        for y in ref_prefix:
+            calibrated_ANI.loc[x,y] = df_ANI.loc[x,y]*df_cov.loc[x,y]
+    calibrated_ANI.to_csv("calibrated_ANI.csv")
 
 
 if __name__ == "__main__":
