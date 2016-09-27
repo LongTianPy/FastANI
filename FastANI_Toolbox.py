@@ -113,7 +113,6 @@ def concate_reference_files(reference_folder,work_dir):
         concat_ref_file.write(seq + "\n")
     concat_ref_file.close()
     mapping = [[i, reference] for i in reference_files]
-    print mapping
     return mapping
 
 
@@ -139,47 +138,50 @@ def single_blast_run(each_mapping):
     :param work_dir:
     :return:
     """
-    (query_filepath,ref_prefix) = each_mapping
-    prefix_query = "".join(query_filepath.split("/")[-1].split(".")[:-1])
-    handler_NewGenome = open(query_filepath,"r")
-    print "Reading {0} genome".format(prefix_query)
-    records_NewGenome = list(SeqIO.parse(handler_NewGenome,"fasta"))
-    handler_NewGenome.close()
-    concatenated_seq_NewGenome = ""
-    print "Concatenating {0} sequences".format(prefix_query)
-    for record in records_NewGenome:
-        concatenated_seq_NewGenome = concatenated_seq_NewGenome + str(record.seq).replace("N","")
-    print "Cutting {0} genome into consecutive 1020 bp fragments".format(prefix_query)
-    fragments_NewGenome, num_fragments = split_query_seq(query_seq=concatenated_seq_NewGenome,frag_size=1020)
-    num_fragments_recorder = open("num_fragments.tab", "a")
-    num_fragments_recorder.write("{0}\t{1}\n".format(prefix_query,num_fragments))
-    num_fragments_recorder.close()
-    handler_fragments_NewGenome = open((prefix_query + "_query.fna"), "w")
-    print "Writing {0} fragments into a new FASTA file".format(prefix_query)
-    for i in range(len(fragments_NewGenome)):
-        handler_fragments_NewGenome.write(">fragment_{0}\n".format(i))
-        handler_fragments_NewGenome.write(fragments_NewGenome[i]+"\n")
-    handler_fragments_NewGenome.close()
-    print "Blasting {0} against the database".format(prefix_query)
-    blastall_cmd = "blastall -p blastn -o {0}_result.tab -i {1} -d {2} " \
-                   "-X 150 -q -1 -F F -e 1e-15 " \
-                   "-m 8" \
-        .format(prefix_query, prefix_query + "_query.fna", "ref_genome_blastdb")
-    os.system(blastall_cmd)
-    FilePath_blast_tab = prefix_query + "_result.tab"
-    print "Parsing blast result of {0}".format(prefix_query)
-    blast_out_obj = blast_tab(FilePath_blast_tab, ref_prefix)
-    ANI_table = blast_out_obj.ANI_table
-    cov_table = blast_out_obj.cov_table.fillna(value=0)
-    print "Retrieving the best match of {0}".format(prefix_query)
-    best_match, best_ANI = parse_blast_tab_get_best(ANI_table=ANI_table,prefix_query=prefix_query)
-    ANI_table.columns = [prefix_query]
-    cov_table.columns = [prefix_query]
-    print "Writing best match result of {0}".format(prefix_query)
-    with open("best_match.tab","a") as best_table:
-        best_table.write("{0}\t{1}\t{2}\n".format(prefix_query, best_match, best_ANI))
-    ANI_table.to_csv("{0}_ANI.csv".format(prefix_query))
-    cov_table.to_csv("{0}_aligned.csv".format(prefix_query))
+    try:
+        (query_filepath,ref_prefix) = each_mapping
+        prefix_query = "".join(query_filepath.split("/")[-1].split(".")[:-1])
+        handler_NewGenome = open(query_filepath,"r")
+        print "Reading {0} genome".format(prefix_query)
+        records_NewGenome = list(SeqIO.parse(handler_NewGenome,"fasta"))
+        handler_NewGenome.close()
+        concatenated_seq_NewGenome = ""
+        print "Concatenating {0} sequences".format(prefix_query)
+        for record in records_NewGenome:
+            concatenated_seq_NewGenome = concatenated_seq_NewGenome + str(record.seq).replace("N","")
+        print "Cutting {0} genome into consecutive 1020 bp fragments".format(prefix_query)
+        fragments_NewGenome, num_fragments = split_query_seq(query_seq=concatenated_seq_NewGenome,frag_size=1020)
+        num_fragments_recorder = open("num_fragments.tab", "a")
+        num_fragments_recorder.write("{0}\t{1}\n".format(prefix_query,num_fragments))
+        num_fragments_recorder.close()
+        handler_fragments_NewGenome = open((prefix_query + "_query.fna"), "w")
+        print "Writing {0} fragments into a new FASTA file".format(prefix_query)
+        for i in range(len(fragments_NewGenome)):
+            handler_fragments_NewGenome.write(">fragment_{0}\n".format(i))
+            handler_fragments_NewGenome.write(fragments_NewGenome[i]+"\n")
+        handler_fragments_NewGenome.close()
+        print "Blasting {0} against the database".format(prefix_query)
+        blastall_cmd = "blastall -p blastn -o {0}_result.tab -i {1} -d {2} " \
+                       "-X 150 -q -1 -F F -e 1e-15 " \
+                       "-m 8" \
+            .format(prefix_query, prefix_query + "_query.fna", "ref_genome_blastdb")
+        os.system(blastall_cmd)
+        FilePath_blast_tab = prefix_query + "_result.tab"
+        print "Parsing blast result of {0}".format(prefix_query)
+        blast_out_obj = blast_tab(FilePath_blast_tab, ref_prefix)
+        ANI_table = blast_out_obj.ANI_table
+        cov_table = blast_out_obj.cov_table.fillna(value=0)
+        print "Retrieving the best match of {0}".format(prefix_query)
+        best_match, best_ANI = parse_blast_tab_get_best(ANI_table=ANI_table,prefix_query=prefix_query)
+        ANI_table.columns = [prefix_query]
+        cov_table.columns = [prefix_query]
+        print "Writing best match result of {0}".format(prefix_query)
+        with open("best_match.tab","a") as best_table:
+            best_table.write("{0}\t{1}\t{2}\n".format(prefix_query, best_match, best_ANI))
+        ANI_table.to_csv("{0}_ANI.csv".format(prefix_query))
+        cov_table.to_csv("{0}_aligned.csv".format(prefix_query))
+    except:
+        pass
 
 
 def FastANI(argv=None):
