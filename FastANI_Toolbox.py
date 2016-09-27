@@ -52,7 +52,6 @@ class blast_tab(object):
                 ANI_dict[each_ref] = np.mean(identities,dtype=np.float64)
         df_ANI = pd.DataFrame.from_dict(ANI_dict,orient='index')
         df_align = pd.DataFrame.from_dict(align_dict,orient='index')
-        )
         df_align.columns = ['ALIGNED']
         df_ANI.columns = ['ANI']
 
